@@ -1,0 +1,14 @@
+ollama:
+  host: localhost
+  port: 11434
+  enalbed: false
+
+embeddings:
+  model: ""
+  enabled: false
+
+rag:
+  enabled: false
+  chunk_size: 512
+  chunk_overlap: 50
+  top_k: 10

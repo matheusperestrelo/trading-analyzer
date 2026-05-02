@@ -1,0 +1,21 @@
+finviz:
+  base_url: ˜https://finviz.com/quote.ashx
+  enabled: true
+  tier: 1
+
+yahoo_finance:
+  enabled: true
+  history_period: "5y"
+
+status_invest:
+  enabled: false
+  tier: 1
+
+b3:
+  enable: false
+  tier: 3
+
+cvm:
+  enabled: false
+  tier: 2
+

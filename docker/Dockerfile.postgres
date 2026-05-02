@@ -1,0 +1,12 @@
+FROM timescale/timescaledb:latest-pg16
+
+RUN apk add --no-cache git build-base clang llvm-dev \
+    && ln -sf /usr/bin/clang /usr/local/bin/clang-19 \
+    && mkdir -p /usr/lib/llvm19/bin \
+    && printf '#!/bin/sh\nexit 0\n' > /usr/lib/llvm19/bin/llvm-lto \
+    && chmod +x /usr/lib/llvm19/bin/llvm-lto \
+    && git clone --branch v0.8.0 https://github.com/pgvector/pgvector.git /tmp/pgvector \
+    && cd /tmp/pgvector \
+    && make PG_CONFIG=/usr/local/bin/pg_config \
+    && make install PG_CONFIG=/usr/local/bin/pg_config \
+    && rm -rf /tmp/pgvector
