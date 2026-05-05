@@ -145,3 +145,19 @@ The custom `docker/Dockerfile.postgres` builds TimescaleDB + pgvector from sourc
 | `relatorios` | Generated analysis reports and scores |
 
 `cotacoes_diarias` is a TimescaleDB hypertable partitioned by the `data` column. The primary key is the composite `(ticker, data)` — required by TimescaleDB so the partitioning column is part of every unique index.
+
+---
+
+## O que está implementado
+
+| Módulo | Status | Descrição |
+|---|---|---|
+| `src/storage/sql/` | ✅ Completo | Models, engine, migrations, Redis client |
+| `src/main.py` | ✅ Completo | CLI skeleton (analyze, collect, report) |
+| `src/collectors/base.py` | ✅ Completo | `BaseCollector` (ABC) + `CollectorResult` (Pydantic) |
+| `src/collectors/schemas.py` | 🔲 Pendente | Schemas de validação com coerção de tipos |
+| `src/collectors/finviz_collector.py` | 🔲 Pendente | Scraping de fundamentos via Finviz |
+| `src/collectors/yfinance_collector.py` | 🔲 Pendente | Preços e histórico via yfinance |
+| `src/processors/` | 🔲 Pendente | Transformação de dados |
+| `src/reporters/` | 🔲 Pendente | Geração de relatórios |
+| `src/ai/` | 🔲 Pendente | Embeddings, RAG, agentes |
