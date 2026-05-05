@@ -157,7 +157,7 @@ The custom `docker/Dockerfile.postgres` builds TimescaleDB + pgvector from sourc
 | `src/collectors/base.py` | ✅ Completo | `BaseCollector` (ABC) + `CollectorResult` (Pydantic) |
 | `src/collectors/schemas.py` | ✅ Completo | `FundamentosSnapshotSchema` + `CotacaoDiariaSchema` com coerção de tipos |
 | `src/collectors/finviz_collector.py` | ✅ Completo | Scraping de fundamentos via Finviz com cache Redis |
-| `src/collectors/yfinance_collector.py` | 🔲 Pendente | Preços e histórico via yfinance |
+| `src/collectors/yfinance_collector.py` | ✅ Completo | Preços e histórico via yfinance com fallback fast_info |
 | `src/processors/` | 🔲 Pendente | Transformação de dados |
 | `src/reporters/` | 🔲 Pendente | Geração de relatórios |
 | `src/ai/` | 🔲 Pendente | Embeddings, RAG, agentes |
