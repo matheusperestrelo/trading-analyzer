@@ -1,0 +1,41 @@
+Com base nos indicadores fundamentalistas coletados, {{ ticker }} apresenta os seguintes destaques:
+
+{% if score_qualidade is not none -%}
+**Qualidade ({{ "%.0f"|format(score_qualidade) }}/100):**
+{%- if score_qualidade >= 70 %} A empresa demonstra sólida qualidade operacional, com rentabilidade acima da média e endividamento controlado.
+{%- elif score_qualidade >= 45 %} A qualidade operacional é razoável, mas existem pontos de atenção que merecem monitoramento.
+{%- else %} A qualidade operacional apresenta fragilidades relevantes, como margens comprimidas ou alavancagem elevada.
+{%- endif %}
+{%- else %}
+**Qualidade:** Dados insuficientes para avaliação.
+{%- endif %}
+
+{% if score_valuation is not none -%}
+**Valuation ({{ "%.0f"|format(score_valuation) }}/100):**
+{%- if score_valuation >= 70 %} Os múltiplos sugerem que a ação está negociando em patamares atrativos para o investidor de longo prazo.
+{%- elif score_valuation >= 45 %} A precificação está em linha com o mercado, sem margem de segurança expressiva.
+{%- else %} Os múltiplos indicam uma precificação esticada em relação aos fundamentos observados.
+{%- endif %}
+{%- else %}
+**Valuation:** Dados insuficientes para avaliação.
+{%- endif %}
+
+{% if score_momento is not none -%}
+**Momento ({{ "%.0f"|format(score_momento) }}/100):**
+{%- if score_momento >= 70 %} O ativo exibe força técnica positiva, negociando acima das médias móveis relevantes com momentum favorável.
+{%- elif score_momento >= 45 %} O momento técnico é neutro; sem tendência clara definida no período analisado.
+{%- else %} O ativo apresenta fraqueza técnica, abaixo de médias móveis importantes, exigindo cautela.
+{%- endif %}
+{%- else %}
+**Momento:** Histórico de preços insuficiente para cálculo.
+{%- endif %}
+
+{% if alertas -%}
+⚠️ **Alertas:** {{ alertas | join("; ") }}.
+{%- endif %}
+
+**Conclusão:** Score geral de {{ "%.1f"|format(score_geral) }}/100 —
+{%- if score_geral >= 70 %} empresa de qualidade negociando a preço justo, com momentum favorável. Perfil adequado para carteiras de longo prazo.
+{%- elif score_geral >= 50 %} fundamentos razoáveis sem catalisador imediato evidente. Monitorar evolução trimestral.
+{%- else %} combinação de fraquezas fundamentais e/ou técnicas que recomenda postura cautelosa neste momento.
+{%- endif %}

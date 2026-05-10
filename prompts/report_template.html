@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ ticker }} — Trading Analyzer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* ── header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #2d3748;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+    .header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+    .header .meta { font-size: 0.8rem; color: #718096; text-align: right; }
+
+    /* ── score badge ── */
+    .score-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      font-weight: 800;
+      border: 3px solid;
+      flex-shrink: 0;
+    }
+    .badge-green  { color: #48bb78; border-color: #48bb78; }
+    .badge-yellow { color: #ecc94b; border-color: #ecc94b; }
+    .badge-red    { color: #fc8181; border-color: #fc8181; }
+
+    /* ── gauge section ── */
+    .gauge-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .gauge-section img { max-width: 420px; width: 100%; }
+
+    /* ── cards grid ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: #1a202c;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .card h3 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #718096;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── indicator rows ── */
+    .indicator {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid #2d3748;
+      font-size: 0.88rem;
+    }
+    .indicator:last-child { border-bottom: none; }
+    .ind-label { color: #a0aec0; }
+    .ind-value { font-weight: 600; }
+    .ind-green  { color: #68d391; }
+    .ind-yellow { color: #f6e05e; }
+    .ind-red    { color: #fc8181; }
+    .ind-neutral { color: #e2e8f0; }
+
+    /* ── sub-score pills ── */
+    .sub-scores {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .sub-score {
+      flex: 1;
+      min-width: 140px;
+      background: #1a202c;
+      border: 1px solid #2d3748;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .sub-score .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #718096; margin-bottom: 0.4rem; }
+    .sub-score .value { font-size: 1.6rem; font-weight: 700; }
+
+    /* ── veredito ── */
+    .veredito {
+      background: #1a202c;
+      border-left: 4px solid #4299e1;
+      border-radius: 0 10px 10px 0;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      line-height: 1.7;
+      font-size: 0.92rem;
+      white-space: pre-wrap;
+    }
+
+    /* ── alerts ── */
+    .alerts { margin-bottom: 2rem; }
+    .alert-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      background: #2d1f1f;
+      border: 1px solid #744210;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      color: #fbd38d;
+    }
+    .alert-icon { flex-shrink: 0; }
+
+    /* ── footer ── */
+    .footer {
+      text-align: center;
+      font-size: 0.72rem;
+      color: #4a5568;
+      border-top: 1px solid #2d3748;
+      padding-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- header -->
+  <div class="header">
+    <div>
+      <h1>{{ ticker }}</h1>
+      <p style="color:#718096; font-size:0.85rem; margin-top:0.25rem;">Análise fundamentalista — {{ data_coleta }}</p>
+    </div>
+    <div class="meta">
+      <p>Trading Analyzer</p>
+      <p>{{ data_coleta }}</p>
+    </div>
+  </div>
+
+  <!-- gauge -->
+  <div class="gauge-section">
+    <img src="data:image/png;base64,{{ gauge_b64 }}" alt="Gauge score geral" />
+  </div>
+
+  <!-- sub-scores -->
+  <div class="sub-scores">
+    <div class="sub-score">
+      <div class="label">Qualidade</div>
+      {% if score_qualidade is not none %}
+        <div class="value {% if score_qualidade >= 70 %}ind-green{% elif score_qualidade >= 45 %}ind-yellow{% else %}ind-red{% endif %}">
+          {{ "%.0f"|format(score_qualidade) }}
+        </div>
+      {% else %}
+        <div class="value ind-neutral">—</div>
+      {% endif %}
+    </div>
+    <div class="sub-score">
+      <div class="label">Valuation</div>
+      {% if score_valuation is not none %}
+        <div class="value {% if score_valuation >= 70 %}ind-green{% elif score_valuation >= 45 %}ind-yellow{% else %}ind-red{% endif %}">
+          {{ "%.0f"|format(score_valuation) }}
+        </div>
+      {% else %}
+        <div class="value ind-neutral">—</div>
+      {% endif %}
+    </div>
+    <div class="sub-score">
+      <div class="label">Momento</div>
+      {% if score_momento is not none %}
+        <div class="value {% if score_momento >= 70 %}ind-green{% elif score_momento >= 45 %}ind-yellow{% else %}ind-red{% endif %}">
+          {{ "%.0f"|format(score_momento) }}
+        </div>
+      {% else %}
+        <div class="value ind-neutral">—</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- indicator cards -->
+  <div class="cards">
+
+    <!-- qualidade -->
+    <div class="card">
+      <h3>Qualidade</h3>
+
+      {% macro row(label, value, fmt, good_above, bad_below) %}
+      <div class="indicator">
+        <span class="ind-label">{{ label }}</span>
+        {% if value is not none %}
+          <span class="ind-value
+            {%- if value >= good_above %} ind-green
+            {%- elif value <= bad_below %} ind-red
+            {%- else %} ind-yellow
+            {%- endif %}">{{ fmt % value }}</span>
+        {% else %}
+          <span class="ind-value ind-neutral">—</span>
+        {% endif %}
+      </div>
+      {% endmacro %}
+
+      {{ row("ROE", fund.roe|default(none), "%.1f%%", 0.15, 0.05) if fund.roe is defined }}
+      <div class="indicator">
+        <span class="ind-label">ROE</span>
+        {% if fund.roe is not none %}
+          <span class="ind-value {% if fund.roe >= 0.15 %}ind-green{% elif fund.roe >= 0.05 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.1f%%"|format(fund.roe * 100) }}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">ROIC</span>
+        {% if fund.roic is not none %}
+          <span class="ind-value {% if fund.roic >= 0.15 %}ind-green{% elif fund.roic >= 0.05 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.1f%%"|format(fund.roic * 100) }}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">Margem Líquida</span>
+        {% if fund.margem_liquida is not none %}
+          <span class="ind-value {% if fund.margem_liquida >= 0.20 %}ind-green{% elif fund.margem_liquida >= 0.05 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.1f%%"|format(fund.margem_liquida * 100) }}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">Dívida/EBITDA</span>
+        {% if fund.divida_liquida_ebitda is not none %}
+          <span class="ind-value {% if fund.divida_liquida_ebitda <= 2.0 %}ind-green{% elif fund.divida_liquida_ebitda <= 4.0 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.1fx"|format(fund.divida_liquida_ebitda) }}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">Liq. Corrente</span>
+        {% if fund.liquidez_corrente is not none %}
+          <span class="ind-value {% if fund.liquidez_corrente >= 1.5 %}ind-green{% elif fund.liquidez_corrente >= 1.0 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.2f"|format(fund.liquidez_corrente) }}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+    </div>
+
+    <!-- valuation -->
+    <div class="card">
+      <h3>Valuation</h3>
+      <div class="indicator">
+        <span class="ind-label">P/L</span>
+        {% if fund.pl is not none %}
+          <span class="ind-value {% if fund.pl <= 15 %}ind-green{% elif fund.pl <= 30 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.1f"|format(fund.pl) }}x</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">P/VPA</span>
+        {% if fund.pvp is not none %}
+          <span class="ind-value {% if fund.pvp <= 2.0 %}ind-green{% elif fund.pvp <= 5.0 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.2f"|format(fund.pvp) }}x</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">Dividend Yield</span>
+        {% if fund.dy is not none %}
+          <span class="ind-value {% if fund.dy >= 0.04 %}ind-green{% elif fund.dy >= 0.01 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.1f%%"|format(fund.dy * 100) }}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">CAGR Receita 5a</span>
+        {% if fund.cagr_receita_5a is not none %}
+          <span class="ind-value {% if fund.cagr_receita_5a >= 0.10 %}ind-green{% elif fund.cagr_receita_5a >= 0.02 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.1f%%"|format(fund.cagr_receita_5a * 100) }}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">Payout</span>
+        {% if fund.payout is not none %}
+          <span class="ind-value {% if fund.payout <= 0.80 %}ind-green{% elif fund.payout <= 1.0 %}ind-yellow{% else %}ind-red{% endif %}">
+            {{ "%.1f%%"|format(fund.payout * 100) }}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+    </div>
+
+    <!-- momento -->
+    <div class="card">
+      <h3>Momento Técnico</h3>
+      <div class="indicator">
+        <span class="ind-label">Preço vs MM200</span>
+        {% if momento.acima_mm200 is not none %}
+          <span class="ind-value {% if momento.acima_mm200 %}ind-green{% else %}ind-red{% endif %}">
+            {% if momento.acima_mm200 %}Acima ↑{% else %}Abaixo ↓{% endif %}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">Preço vs MM50</span>
+        {% if momento.acima_mm50 is not none %}
+          <span class="ind-value {% if momento.acima_mm50 %}ind-green{% else %}ind-red{% endif %}">
+            {% if momento.acima_mm50 %}Acima ↑{% else %}Abaixo ↓{% endif %}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">MM50 vs MM200</span>
+        {% if momento.mm50_acima_mm200 is not none %}
+          <span class="ind-value {% if momento.mm50_acima_mm200 %}ind-green{% else %}ind-red{% endif %}">
+            {% if momento.mm50_acima_mm200 %}Golden Cross{% else %}Death Cross{% endif %}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+      <div class="indicator">
+        <span class="ind-label">RSI (14)</span>
+        {% if momento.rsi is not none %}
+          <span class="ind-value {% if momento.rsi <= 70 and momento.rsi >= 30 %}ind-green{% elif momento.rsi > 70 %}ind-red{% else %}ind-yellow{% endif %}">
+            {{ "%.1f"|format(momento.rsi) }}</span>
+        {% else %}<span class="ind-value ind-neutral">—</span>{% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- veredito -->
+  <div class="veredito">{{ veredito }}</div>
+
+  <!-- alerts -->
+  {% if alertas %}
+  <div class="alerts">
+    {% for alerta in alertas %}
+    <div class="alert-item">
+      <span class="alert-icon">⚠️</span>
+      <span>{{ alerta }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- footer -->
+  <div class="footer">
+    <p>Trading Analyzer · Gerado em {{ data_coleta }} · Apenas para suporte à decisão pessoal. Não constitui recomendação de investimento.</p>
+  </div>
+
+</div>
+</body>
+</html>

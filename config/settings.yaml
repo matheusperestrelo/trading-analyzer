@@ -30,3 +30,20 @@ paths:
   reports: ./reports
   logs: ./logs
   prompts: ./prompts
+
+score:
+  pesos:
+    qualidade: 0.40
+    valuation: 0.35
+    momento: 0.25
+  qualidade:
+    roe_excelencia: 0.20
+    roic_excelencia: 0.20
+    margem_liquida_excelencia: 0.30
+    divida_max: 4.0
+  valuation:
+    pl_barato: 10
+    pl_caro: 40
+    pvp_barato: 1.0
+    pvp_caro: 6.0
+    dy_excelencia: 0.06
