@@ -18,16 +18,17 @@ class Repository:
         nome: str,
         setor: str,
         subsetor: str,
-        segmento_listagem: str,
+        segmento_listagem: str = "",
+        exchange: str = "",
     ) -> None:
         stmt = text("""
-            INSERT INTO tickers (ticker, nome, setor, subsetor, segmento_listagem)
-            VALUES (:ticker, :nome, :setor, :subsetor, :segmento_listagem)
+            INSERT INTO tickers (id, ticker, nome, setor, subsetor, exchange, criado_em)
+            VALUES (gen_random_uuid(), :ticker, :nome, :setor, :subsetor, :exchange, now())
             ON CONFLICT (ticker) DO UPDATE SET
                 nome = EXCLUDED.nome,
                 setor = EXCLUDED.setor,
                 subsetor = EXCLUDED.subsetor,
-                segmento_listagem = EXCLUDED.segmento_listagem
+                exchange = EXCLUDED.exchange
         """)
         try:
             with self._engine.begin() as conn:
@@ -36,7 +37,7 @@ class Repository:
                     "nome": nome,
                     "setor": setor,
                     "subsetor": subsetor,
-                    "segmento_listagem": segmento_listagem,
+                    "exchange": exchange or segmento_listagem,
                 })
         except Exception as e:
             logger.error(f"upsert_ticker falhou | ticker={ticker} | erro={e}")
@@ -45,15 +46,15 @@ class Repository:
     def insert_fundamentos_snapshot(self, schema: FundamentosSnapshotSchema) -> str:
         stmt = text("""
             INSERT INTO fundamentos_snapshot (
-                id, ticker, data_coleta, fonte,
-                pl, pvp, dy, roe, roic, margem_liquida,
+                id, ticker, coletado_em, fonte,
+                pl, pvp, dy, roe, roic, margem_liquida, margem_ebitda,
                 divida_liquida_ebitda, liquidez_corrente, cagr_receita_5a, payout,
-                market_cap, text_description, raw_json
+                ev_ebitda, text_description, raw_json
             ) VALUES (
                 gen_random_uuid(), :ticker, now(), :fonte,
-                :pl, :pvp, :dy, :roe, :roic, :margem_liquida,
+                :pl, :pvp, :dy, :roe, :roic, :margem_liquida, :margem_ebitda,
                 :divida_liquida_ebitda, :liquidez_corrente, :cagr_receita_5a, :payout,
-                :market_cap, :text_description, :raw_json::jsonb
+                :ev_ebitda, :text_description, CAST(:raw_json AS jsonb)
             ) RETURNING id
         """)
         params = {
@@ -65,11 +66,12 @@ class Repository:
             "roe": schema.roe,
             "roic": schema.roic,
             "margem_liquida": schema.margem_liquida,
+            "margem_ebitda": getattr(schema, "margem_ebitda", None),
             "divida_liquida_ebitda": schema.divida_liquida_ebitda,
             "liquidez_corrente": schema.liquidez_corrente,
             "cagr_receita_5a": schema.cagr_receita_5a,
             "payout": schema.payout,
-            "market_cap": None,
+            "ev_ebitda": getattr(schema, "ev_ebitda", None),
             "text_description": schema.text_description,
             "raw_json": json.dumps(schema.raw_json),
         }
@@ -115,7 +117,7 @@ class Repository:
         stmt = text("""
             SELECT * FROM fundamentos_snapshot
             WHERE ticker = :ticker
-            ORDER BY data_coleta DESC
+            ORDER BY coletado_em DESC
             LIMIT 1
         """)
         try:
@@ -149,15 +151,16 @@ class Repository:
     def insert_relatorio(self, ticker: str, caminho: str, score_geral: float) -> str:
         """Insert a report record; returns the new UUID."""
         stmt = text("""
-            INSERT INTO relatorios (id, ticker, data, caminho, score_geral)
-            VALUES (gen_random_uuid(), :ticker, now(), :caminho, :score_geral)
+            INSERT INTO relatorios (id, ticker, gerado_em, tipo, caminho_arquivo, score_geral)
+            VALUES (gen_random_uuid(), :ticker, now(), :tipo, :caminho_arquivo, :score_geral)
             RETURNING id
         """)
         try:
             with self._engine.begin() as conn:
                 result = conn.execute(stmt, {
                     "ticker": ticker,
-                    "caminho": caminho,
+                    "tipo": "html",
+                    "caminho_arquivo": caminho,
                     "score_geral": score_geral,
                 })
                 row_id = str(result.scalar_one())
